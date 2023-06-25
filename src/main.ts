@@ -49,9 +49,9 @@ loader.load(
       if (child instanceof THREE.Mesh) {
         // child.material = wireframeMaterial;
         rubixCube.push(child);
+        applywireframe(false);
       }
     });
-    console.log(rubixCube);
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -61,17 +61,17 @@ loader.load(
   }
 );
 
-const wireframeEnabled = true;
-if (wireframeEnabled) {
-  console.log(rubixCube.length);
-  const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
-  rubixCube.forEach((cube) => {
-    console.log(cube);
-    if (cube instanceof THREE.Mesh) {
-      cube.material = wireframeMaterial;
-    }
-  });
+function applywireframe(apply: Boolean) {
+  if (apply) {
+    const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+    rubixCube.forEach((cube) => {
+      if (cube instanceof THREE.Mesh) {
+        cube.material = wireframeMaterial;
+      }
+    });
+  }
 }
+
 //helpers
 let boxhelper: THREE.BoxHelper | null = null;
 
@@ -82,12 +82,11 @@ const planeSize = 1.8;
 const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
 const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-scene.add(plane);
 
 // Create the sphere geometry
-var sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-var sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-var sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+let sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+let sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+let sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
 function checkIntersection(event: PointerEvent) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -118,25 +117,28 @@ function checkIntersection(event: PointerEvent) {
       sphereMesh.position.copy(center); // enable wireframe model to see the sphere at centre if it is inside
       // scene.add(sphereMesh);
 
-      var maxValue = Math.max(
+      let maxValue = Math.max(
         intersectFace.normal.x,
         intersectFace.normal.y,
         intersectFace.normal.z
       );
-
-      let offset = 0.001;
-      maxValue === 1 ? (offset = 0.001) : (offset = -0.001);
+      const offset = maxValue === 1 ? 0.001 : -0.001;
 
       let faceCenter = new THREE.Vector3().addVectors(
         center.ceil().addScalar(offset),
         intersectFace.normal.ceil()
       );
 
-      plane.position.copy(faceCenter);
-      plane.lookAt(plane.position.clone().add(intersectFace.normal));
+      const removeEdge = intersectFace.normal.toArray().filter((value) => value === 1).length >= 2;
+      if (!removeEdge) {
+        plane.position.copy(faceCenter);
+        plane.lookAt(plane.position.clone().add(intersectFace.normal));
+        scene.add(plane);
+      }
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
+    scene.remove(plane);
   }
 }
 
