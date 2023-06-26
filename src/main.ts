@@ -2,7 +2,21 @@ import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-let rubixCube: THREE.Object3D[] = [];
+let rubixCube: THREE.Object3D[][][] = [];
+
+const rows = 3;
+const columns = 3;
+const layers = 3;
+
+for (let i = 0; i < rows; i++) {
+  rubixCube[i] = [];
+  for (let j = 0; j < columns; j++) {
+    rubixCube[i][j] = [];
+    for (let k = 0; k < layers; k++) {
+      rubixCube[i][j][k] = new THREE.Object3D();
+    }
+  }
+}
 
 let mouse = new THREE.Vector2();
 let raycaster = new THREE.Raycaster();
@@ -45,13 +59,23 @@ loader.load(
     scene.add(model);
     console.log(model);
 
+    let flatRubixCube: THREE.Object3D[] = [];
+
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        // child.material = wireframeMaterial;
-        rubixCube.push(child);
+        flatRubixCube.push(child);
         applywireframe(false);
       }
     });
+
+    let index = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let column = 0; column < columns; column++) {
+        for (let layer = 0; layer < layers; layer++) {
+          rubixCube[row][column][layer] = flatRubixCube[index++];
+        }
+      }
+    }
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -93,13 +117,37 @@ function checkIntersection(event: PointerEvent) {
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(rubixCube, false);
+  const intersects = raycaster.intersectObjects(rubixCube.flat(3), false);
 
   if (intersects.length > 0) {
     const intersect = intersects[0];
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
       const intersectObject = intersect.object;
       const intersectFace = intersect.face;
+
+      let intersectedIndices: { i: number; j: number; k: number } | null = null;
+      for (let i = 0; i < rubixCube.length; i++) {
+        for (let j = 0; j < rubixCube[i].length; j++) {
+          for (let k = 0; k < rubixCube[i][j].length; k++) {
+            const object = rubixCube[i][j][k];
+            if (object === intersectObject) {
+              intersectedIndices = { i, j, k };
+              break;
+            }
+          }
+          if (intersectedIndices) {
+            break;
+          }
+        }
+        if (intersectedIndices) {
+          break;
+        }
+      }
+
+      if (intersectedIndices) {
+        const { i, j, k } = intersectedIndices;
+        console.log('Intersected object found at indices:', i, j, k);
+      }
 
       if (boxhelper) scene.remove(boxhelper); // Remove previous boxhelper, if any
 
