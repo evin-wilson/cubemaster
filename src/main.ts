@@ -112,6 +112,12 @@ let sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
 let sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 let sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
+interface Indices {
+  i: number;
+  j: number;
+  k: number;
+}
+
 function checkIntersection(event: PointerEvent) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -125,7 +131,7 @@ function checkIntersection(event: PointerEvent) {
       const intersectObject = intersect.object;
       const intersectFace = intersect.face;
 
-      let intersectedIndices: { i: number; j: number; k: number } | null = null;
+      let intersectedIndices: Indices | null = null;
       for (let i = 0; i < rubixCube.length; i++) {
         for (let j = 0; j < rubixCube[i].length; j++) {
           for (let k = 0; k < rubixCube[i][j].length; k++) {
@@ -145,6 +151,7 @@ function checkIntersection(event: PointerEvent) {
       }
 
       if (intersectedIndices) {
+        getCubes(intersectedIndices, 1);
         const { i, j, k } = intersectedIndices;
         console.log('Intersected object found at indices:', i, j, k);
       }
@@ -188,6 +195,12 @@ function checkIntersection(event: PointerEvent) {
     if (boxhelper) scene.remove(boxhelper);
     scene.remove(plane);
   }
+}
+
+function getCubes(index: Indices, mouseMovement: Number) {
+  const horizontalPlane = rubixCube[index.i];
+  let verticalPlane;
+  // console.log(horizontalPlane.flat(3));
 }
 
 function onResize() {
