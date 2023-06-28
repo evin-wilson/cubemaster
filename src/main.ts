@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RubiksCubeCalculation } from './calculation';
 
 let rubixCube: THREE.Object3D[][][] = [];
+let rubiksCubeCalculation: RubiksCubeCalculation;
+let altkeyPressed = false;
 
 const rows = 3;
 const columns = 3;
@@ -49,6 +52,12 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.enableZoom = false;
 
+let hGp = new THREE.Group();
+hGp.name = 'Horizonatl-Group';
+let vGp = new THREE.Group();
+vGp.name = 'Vertical-Group';
+scene.add(hGp, vGp);
+
 // Create a loader for GLB files
 const loader = new GLTFLoader();
 
@@ -76,6 +85,8 @@ loader.load(
         }
       }
     }
+
+    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube);
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -112,12 +123,6 @@ let sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
 let sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 let sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
-interface Indices {
-  i: number;
-  j: number;
-  k: number;
-}
-
 function checkIntersection(event: PointerEvent) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -130,77 +135,57 @@ function checkIntersection(event: PointerEvent) {
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
       const intersectObject = intersect.object;
       const intersectFace = intersect.face;
+      addSelectionPlane(intersectObject, intersectFace);
 
-      let intersectedIndices: Indices | null = null;
-      for (let i = 0; i < rubixCube.length; i++) {
-        for (let j = 0; j < rubixCube[i].length; j++) {
-          for (let k = 0; k < rubixCube[i][j].length; k++) {
-            const object = rubixCube[i][j][k];
-            if (object === intersectObject) {
-              intersectedIndices = { i, j, k };
-              break;
-            }
-          }
-          if (intersectedIndices) {
-            break;
-          }
-        }
-        if (intersectedIndices) {
-          break;
-        }
-      }
-
-      if (intersectedIndices) {
-        getCubes(intersectedIndices, 1);
-        const { i, j, k } = intersectedIndices;
-        console.log('Intersected object found at indices:', i, j, k);
-      }
+      let selection = rubiksCubeCalculation.findParent(intersectObject);
+      scene.add(selection.horizontalGroup, selection.verticalGroup);
 
       if (boxhelper) scene.remove(boxhelper); // Remove previous boxhelper, if any
-
-      boxhelper = new THREE.BoxHelper(intersectObject, 0xffff00);
+      boxhelper = new THREE.BoxHelper(selection.horizontalGroup, 0xffff00);
       boxhelper.update();
-      // scene.add(boxhelper);
-
-      const boundingBox = new THREE.Box3();
-      boundingBox.setFromObject(intersectObject);
-      const center = boundingBox.getCenter(new THREE.Vector3());
-
-      // adding this due to some issue in model
-      center.x -= 1;
-      center.y -= 1;
-      sphereMesh.position.copy(center); // enable wireframe model to see the sphere at centre if it is inside
-      // scene.add(sphereMesh);
-
-      let maxValue = Math.max(
-        intersectFace.normal.x,
-        intersectFace.normal.y,
-        intersectFace.normal.z
-      );
-      const offset = maxValue === 1 ? 0.001 : -0.001;
-
-      let faceCenter = new THREE.Vector3().addVectors(
-        center.ceil().addScalar(offset),
-        intersectFace.normal.ceil()
-      );
-
-      const removeEdge = intersectFace.normal.toArray().filter((value) => value === 1).length >= 2;
-      if (!removeEdge) {
-        plane.position.copy(faceCenter);
-        plane.lookAt(plane.position.clone().add(intersectFace.normal));
-        scene.add(plane);
-      }
+      scene.add(boxhelper);
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
     scene.remove(plane);
+    moveChildrenToScene(hGp);
+    moveChildrenToScene(vGp);
   }
 }
 
-function getCubes(index: Indices, mouseMovement: Number) {
-  const horizontalPlane = rubixCube[index.i];
-  let verticalPlane;
-  // console.log(horizontalPlane.flat(3));
+function addSelectionPlane(intersectObject: THREE.Object3D, intersectFace: THREE.Face) {
+  const boundingBox = new THREE.Box3();
+  boundingBox.setFromObject(intersectObject);
+  const center = boundingBox.getCenter(new THREE.Vector3());
+
+  // adding this due to some issue in model
+  center.x -= 1;
+  center.y -= 1;
+  sphereMesh.position.copy(center); // enable wireframe model to see the sphere at centre if it is inside
+  // scene.add(sphereMesh);
+
+  let maxValue = Math.max(intersectFace.normal.x, intersectFace.normal.y, intersectFace.normal.z);
+  const offset = maxValue === 1 ? 0.001 : -0.001;
+
+  let faceCenter = new THREE.Vector3().addVectors(
+    center.ceil().addScalar(offset),
+    intersectFace.normal.ceil()
+  );
+
+  const removeEdge = intersectFace.normal.toArray().filter((value) => value === 1).length >= 2;
+  if (!removeEdge) {
+    plane.position.copy(faceCenter);
+    plane.lookAt(plane.position.clone().add(intersectFace.normal));
+    scene.add(plane);
+  }
+}
+
+function moveChildrenToScene(group: THREE.Group) {
+  while (group.children.length > 0) {
+    const child = group.children[0];
+    group.remove(child);
+    scene.add(child);
+  }
 }
 
 function onResize() {
@@ -208,6 +193,28 @@ function onResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+function handleKeyDown(event: { key: any }) {
+  const rotationAmount = Math.PI / 2; // 90 degrees in radians
+
+  switch (event.key) {
+    case 'ArrowUp':
+      vGp.rotation.x += rotationAmount; // Rotate around x-axis in positive direction
+      break;
+    case 'ArrowDown':
+      vGp.rotation.x -= rotationAmount; // Rotate around x-axis in negative direction
+      break;
+    case 'ArrowLeft':
+      hGp.rotation.y += rotationAmount; // Rotate around y-axis in positive direction
+      break;
+    case 'ArrowRight':
+      hGp.rotation.y -= rotationAmount; // Rotate around y-axis in negative direction
+      break;
+    case 'Alt':
+      altkeyPressed = true;
+  }
+}
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
@@ -218,5 +225,11 @@ function animate() {
 // Start the animation loop
 animate();
 
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
 window.addEventListener('resize', onResize);
-window.addEventListener('pointermove', checkIntersection);
+window.addEventListener('pointermove', (e) => {
+  if (!altkeyPressed) {
+    checkIntersection(e);
+  }
+});
