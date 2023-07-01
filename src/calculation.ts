@@ -7,19 +7,19 @@ export interface Indices {
 }
 
 export class RubiksCubeCalculation {
-  private rubiksCube: THREE.Object3D[][][];
+  private rubiksCube: THREE.Mesh[][][];
 
-  constructor(rubiksCube: THREE.Object3D[][][]) {
+  constructor(rubiksCube: THREE.Mesh[][][]) {
     this.rubiksCube = rubiksCube;
   }
 
-  public findIndex(cube: THREE.Mesh): Indices {
+  public findIndex(cubie: THREE.Mesh): Indices {
     let intersectedIndices: Indices | null = null;
     for (let height = 0; height < this.rubiksCube.length; height++) {
       for (let row = 0; row < this.rubiksCube[height].length; row++) {
         for (let column = 0; column < this.rubiksCube[height][row].length; column++) {
           const object = this.rubiksCube[height][row][column];
-          if (object === cube) {
+          if (object === cubie) {
             intersectedIndices = { height, row, column };
             break;
           }
@@ -36,21 +36,50 @@ export class RubiksCubeCalculation {
     else return { height: -1, row: -1, column: -1 };
   }
 
-  public findParent(cube: THREE.Mesh) {
-    let intersectedIndices = this.findIndex(cube);
-    let horizontalCubes = this.rubiksCube[intersectedIndices.height].flat(3);
-    let verticalCubes: THREE.Object3D[] = [];
-    this.rubiksCube.forEach((row) =>
-      row.forEach((column) => verticalCubes.push(column[intersectedIndices.column]))
-    );
+  public findSelection(cubie: THREE.Mesh) {
+    let intersectedIndices = this.findIndex(cubie);
+    let horizontalSelection = this.rubiksCube[intersectedIndices.height];
 
-    let horizontalGroup = new THREE.Group();
-    let verticalGroup = new THREE.Group();
-    horizontalGroup.name = 'horizontalGroup';
-    verticalGroup.name = 'verticalGroup';
-    horizontalCubes.forEach((child) => horizontalGroup.add(child));
-    verticalCubes.forEach((child) => verticalGroup.add(child));
+    let i: number = 0;
+    let verticalSelection: THREE.Mesh[][] = [];
+    this.rubiksCube.forEach((row) => {
+      verticalSelection[i] = [];
+      row.forEach((column) => {
+        verticalSelection[i].push(column[intersectedIndices.column]);
+      });
+      i++;
+    });
 
-    return { horizontalGroup, verticalGroup };
+    return { horizontalSelection, verticalSelection };
+  }
+
+  public rotate(cubie: THREE.Mesh, axis: string, clockwise: boolean) {
+    let toBeRotated: THREE.Mesh[][];
+    let { horizontalSelection, verticalSelection } = this.findSelection(cubie);
+
+    if (axis === 'x') {
+      toBeRotated = horizontalSelection;
+    } else toBeRotated = verticalSelection;
+
+    let rotated = this.rotateCube(toBeRotated, clockwise);
+    console.log(rotated);
+  }
+
+  public rotateCube(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Mesh[][] {
+    const dim = cubies.length;
+
+    const rotatedMatrix: THREE.Mesh[][] = Array.from({ length: dim }, () => new Array(dim));
+
+    for (let row = 0; row < dim; row++) {
+      for (let col = 0; col < dim; col++) {
+        if (clockwise) {
+          rotatedMatrix[col][dim - 1 - row] = cubies[row][col];
+        } else {
+          rotatedMatrix[dim - 1 - col][row] = cubies[row][col];
+        }
+      }
+    }
+
+    return rotatedMatrix;
   }
 }

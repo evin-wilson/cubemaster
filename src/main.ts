@@ -3,7 +3,7 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RubiksCubeCalculation } from './calculation';
 
-let rubixCube: THREE.Object3D[][][] = [];
+let rubixCube: THREE.Mesh[][][] = [];
 let rubiksCubeCalculation: RubiksCubeCalculation;
 let altkeyPressed = false;
 
@@ -16,7 +16,7 @@ for (let i = 0; i < rows; i++) {
   for (let j = 0; j < columns; j++) {
     rubixCube[i][j] = [];
     for (let k = 0; k < layers; k++) {
-      rubixCube[i][j][k] = new THREE.Object3D();
+      rubixCube[i][j][k] = new THREE.Mesh();
     }
   }
 }
@@ -68,7 +68,7 @@ loader.load(
     scene.add(model);
     console.log(model);
 
-    let flatRubixCube: THREE.Object3D[] = [];
+    let flatRubixCube: THREE.Mesh[] = [];
 
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -137,13 +137,29 @@ function checkIntersection(event: PointerEvent) {
       const intersectFace = intersect.face;
       addSelectionPlane(intersectObject, intersectFace);
 
-      let selection = rubiksCubeCalculation.findParent(intersectObject);
-      scene.add(selection.horizontalGroup, selection.verticalGroup);
+      let index = rubiksCubeCalculation.findIndex(intersectObject);
 
-      if (boxhelper) scene.remove(boxhelper); // Remove previous boxhelper, if any
-      boxhelper = new THREE.BoxHelper(selection.horizontalGroup, 0xffff00);
-      boxhelper.update();
-      scene.add(boxhelper);
+      // Add key event listener inside the intersection block
+      window.addEventListener('keydown', onKeyDown);
+      // Key event listener function
+      function onKeyDown(event: { key: any }) {
+        console.log('Key pressed:', event.key);
+        switch (event.key) {
+          case 'ArrowUp':
+            rubiksCubeCalculation.rotate(intersectObject, 'y', true);
+            break;
+          case 'ArrowDown':
+            rubiksCubeCalculation.rotate(intersectObject, 'y', false);
+            break;
+          case 'ArrowLeft':
+            rubiksCubeCalculation.rotate(intersectObject, 'x', true);
+            break;
+          case 'ArrowRight':
+            rubiksCubeCalculation.rotate(intersectObject, 'x', false);
+            break;
+        }
+        window.removeEventListener('keydown', onKeyDown);
+      }
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
@@ -159,8 +175,8 @@ function addSelectionPlane(intersectObject: THREE.Object3D, intersectFace: THREE
   const center = boundingBox.getCenter(new THREE.Vector3());
 
   // adding this due to some issue in model
-  center.x -= 1;
-  center.y -= 1;
+  // center.x -= 1;
+  // center.y -= 1;
   sphereMesh.position.copy(center); // enable wireframe model to see the sphere at centre if it is inside
   // scene.add(sphereMesh);
 
@@ -183,8 +199,14 @@ function addSelectionPlane(intersectObject: THREE.Object3D, intersectFace: THREE
 function moveChildrenToScene(group: THREE.Group) {
   while (group.children.length > 0) {
     const child = group.children[0];
+    const { position, rotation, scale } = group;
     group.remove(child);
     scene.add(child);
+
+    child.position.copy(position);
+    child.rotation.copy(rotation);
+    child.scale.copy(scale);
+    // group.dispose();
   }
 }
 
@@ -199,10 +221,10 @@ function handleKeyDown(event: { key: any }) {
 
   switch (event.key) {
     case 'ArrowUp':
-      vGp.rotation.x += rotationAmount; // Rotate around x-axis in positive direction
+      vGp.rotation.x = rotationAmount; // Rotate around x-axis in positive direction
       break;
     case 'ArrowDown':
-      vGp.rotation.x -= rotationAmount; // Rotate around x-axis in negative direction
+      vGp.rotation.x = -rotationAmount; // Rotate around x-axis in negative direction
       break;
     case 'ArrowLeft':
       hGp.rotation.y += rotationAmount; // Rotate around y-axis in positive direction
@@ -210,8 +232,8 @@ function handleKeyDown(event: { key: any }) {
     case 'ArrowRight':
       hGp.rotation.y -= rotationAmount; // Rotate around y-axis in negative direction
       break;
-    case 'Alt':
-      altkeyPressed = true;
+    // case 'Alt':
+    //   altkeyPressed = true;
   }
 }
 
@@ -225,8 +247,8 @@ function animate() {
 // Start the animation loop
 animate();
 
-window.addEventListener('keydown', handleKeyDown);
-window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
+// window.addEventListener('keydown', handleKeyDown);
+// window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
 window.addEventListener('resize', onResize);
 window.addEventListener('pointermove', (e) => {
   if (!altkeyPressed) {
