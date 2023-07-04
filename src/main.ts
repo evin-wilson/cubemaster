@@ -107,7 +107,7 @@ loader.load(
 function applywireframe(apply: Boolean) {
   if (apply) {
     const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
-    rubixCube.forEach((cube) => {
+    cubiesList.forEach((cube) => {
       if (cube instanceof THREE.Mesh) {
         cube.material = wireframeMaterial;
       }
@@ -159,21 +159,15 @@ function addSelectionPlane(intersectObject: THREE.Object3D, intersectFace: THREE
   boundingBox.setFromObject(intersectObject);
   const center = boundingBox.getCenter(new THREE.Vector3());
 
-  // adding this due to some issue in model
-  // center.x -= 1;
-  // center.y -= 1;
   sphereMesh.position.copy(center); // enable wireframe model to see the sphere at centre if it is inside
-  // scene.add(sphereMesh);
+  scene.add(sphereMesh);
 
   let maxValue = Math.max(intersectFace.normal.x, intersectFace.normal.y, intersectFace.normal.z);
   const offset = maxValue === 1 ? 0.001 : -0.001;
 
-  let faceCenter = new THREE.Vector3().addVectors(
-    center.ceil().addScalar(offset),
-    intersectFace.normal.ceil()
-  );
+  let faceCenter = new THREE.Vector3().addVectors(center.addScalar(offset), intersectFace.normal);
 
-  const removeEdge = intersectFace.normal.toArray().filter((value) => value === 1).length >= 2;
+  const removeEdge = intersectFace.normal.toArray().filter((value) => value % 1 !== 0).length >= 2;
   if (!removeEdge) {
     plane.position.copy(faceCenter);
     plane.lookAt(plane.position.clone().add(intersectFace.normal));
