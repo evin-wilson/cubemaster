@@ -64,7 +64,7 @@ scene.add(hGp, vGp);
 const loader = new GLTFLoader();
 
 loader.load(
-  '/assets/rubix-cube-indi-centre.glb',
+  '/assets/rubix-cube.glb',
   (gltf: GLTF) => {
     const model = gltf.scene;
     scene.add(model);
