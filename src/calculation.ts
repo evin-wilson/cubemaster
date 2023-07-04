@@ -8,9 +8,11 @@ export interface Indices {
 
 export class RubiksCubeCalculation {
   private rubiksCube: THREE.Mesh[][][];
+  private list: THREE.Mesh[];
 
-  constructor(rubiksCube: THREE.Mesh[][][]) {
+  constructor(rubiksCube: THREE.Mesh[][][], list: THREE.Mesh[]) {
     this.rubiksCube = rubiksCube;
+    this.list = list;
   }
 
   public findIndex(cubie: THREE.Mesh): Indices {
@@ -54,6 +56,7 @@ export class RubiksCubeCalculation {
   }
 
   public rotate(cubie: THREE.Mesh, axis: string, clockwise: boolean) {
+    console.log(cubie);
     let toBeRotated: THREE.Mesh[][];
     let { horizontalSelection, verticalSelection } = this.findSelection(cubie);
 
@@ -63,6 +66,13 @@ export class RubiksCubeCalculation {
 
     let rotated = this.rotateCube(toBeRotated, clockwise);
     console.log(rotated);
+
+    const dim = rotated.length;
+    for (let row = 0; row < dim; row++) {
+      for (let col = 0; col < dim; col++) {
+        toBeRotated[row][col].position.copy(rotated[row][col].position);
+      }
+    }
   }
 
   public rotateCube(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Mesh[][] {
@@ -81,5 +91,40 @@ export class RubiksCubeCalculation {
     }
 
     return rotatedMatrix;
+  }
+
+  /**
+   * x axis for vertical
+   * y axis for horizontal
+   */
+  public roList(cubie: THREE.Mesh, axis: string, clockwise: boolean) {
+    let a: THREE.Mesh[] = [];
+    this.list.forEach((child) => {
+      if (axis === 'x' && child.position.x === cubie.position.x) {
+        a.push(child);
+      } else if (axis === 'y' && child.position.y === cubie.position.y) {
+        a.push(child);
+      }
+    });
+    // a.forEach((child) => console.log(child));
+
+    let rubixCube: THREE.Mesh[][] = [];
+    let index = 0;
+    for (let j = 0; j < 3; j++) {
+      rubixCube[j] = [];
+      for (let k = 0; k < 3; k++) {
+        rubixCube[j][k] = a[index++];
+      }
+    }
+    let newrotaed = this.rotateCube(rubixCube, clockwise);
+
+    for (let j = 0; j < 3; j++) {
+      // rubixCube[j] = [];
+      for (let k = 0; k < 3; k++) {
+        rubixCube[j][k].position.copy(newrotaed[j][k].position);
+      }
+    }
+    console.log(rubixCube);
+    console.log(newrotaed);
   }
 }

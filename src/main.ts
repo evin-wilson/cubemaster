@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RubiksCubeCalculation } from './calculation';
 
 let rubixCube: THREE.Mesh[][][] = [];
+let cubiesList: THREE.Mesh[] = [];
 let rubiksCubeCalculation: RubiksCubeCalculation;
 let altkeyPressed = false;
 
@@ -24,6 +25,7 @@ for (let i = 0; i < rows; i++) {
 let mouse = new THREE.Vector2();
 let raycaster = new THREE.Raycaster();
 
+let intersectedCubie: THREE.Mesh;
 // Create a scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
@@ -62,7 +64,7 @@ scene.add(hGp, vGp);
 const loader = new GLTFLoader();
 
 loader.load(
-  '/assets/rubix-cube.glb',
+  '/assets/rubix-cube-indi-centre.glb',
   (gltf: GLTF) => {
     const model = gltf.scene;
     scene.add(model);
@@ -72,7 +74,13 @@ loader.load(
 
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        const position = child.position;
+        position.x = Math.round(position.x);
+        position.y = Math.round(position.y);
+        position.z = Math.round(position.z);
         flatRubixCube.push(child);
+        cubiesList.push(child);
+
         applywireframe(false);
       }
     });
@@ -86,7 +94,7 @@ loader.load(
       }
     }
 
-    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube);
+    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube, cubiesList);
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -134,32 +142,9 @@ function checkIntersection(event: PointerEvent) {
     const intersect = intersects[0];
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
       const intersectObject = intersect.object;
+      intersectedCubie = intersectObject;
       const intersectFace = intersect.face;
       addSelectionPlane(intersectObject, intersectFace);
-
-      let index = rubiksCubeCalculation.findIndex(intersectObject);
-
-      // Add key event listener inside the intersection block
-      window.addEventListener('keydown', onKeyDown);
-      // Key event listener function
-      function onKeyDown(event: { key: any }) {
-        console.log('Key pressed:', event.key);
-        switch (event.key) {
-          case 'ArrowUp':
-            rubiksCubeCalculation.rotate(intersectObject, 'y', true);
-            break;
-          case 'ArrowDown':
-            rubiksCubeCalculation.rotate(intersectObject, 'y', false);
-            break;
-          case 'ArrowLeft':
-            rubiksCubeCalculation.rotate(intersectObject, 'x', true);
-            break;
-          case 'ArrowRight':
-            rubiksCubeCalculation.rotate(intersectObject, 'x', false);
-            break;
-        }
-        window.removeEventListener('keydown', onKeyDown);
-      }
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
@@ -221,16 +206,16 @@ function handleKeyDown(event: { key: any }) {
 
   switch (event.key) {
     case 'ArrowUp':
-      vGp.rotation.x = rotationAmount; // Rotate around x-axis in positive direction
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', true);
       break;
     case 'ArrowDown':
-      vGp.rotation.x = -rotationAmount; // Rotate around x-axis in negative direction
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', false);
       break;
     case 'ArrowLeft':
-      hGp.rotation.y += rotationAmount; // Rotate around y-axis in positive direction
+      rubiksCubeCalculation.roList(intersectedCubie, 'y', true);
       break;
     case 'ArrowRight':
-      hGp.rotation.y -= rotationAmount; // Rotate around y-axis in negative direction
+      rubiksCubeCalculation.roList(intersectedCubie, 'y', false);
       break;
     // case 'Alt':
     //   altkeyPressed = true;
@@ -247,8 +232,8 @@ function animate() {
 // Start the animation loop
 animate();
 
-// window.addEventListener('keydown', handleKeyDown);
-// window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
 window.addEventListener('resize', onResize);
 window.addEventListener('pointermove', (e) => {
   if (!altkeyPressed) {
