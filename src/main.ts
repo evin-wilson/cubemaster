@@ -141,10 +141,9 @@ function checkIntersection(event: PointerEvent) {
   if (intersects.length > 0) {
     const intersect = intersects[0];
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
-      const intersectObject = intersect.object;
-      intersectedCubie = intersectObject;
+      intersectedCubie = intersect.object;
       const intersectFace = intersect.face;
-      addSelectionPlane(intersectObject, intersectFace);
+      addSelectionPlane(intersectedCubie, intersectFace);
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
@@ -196,8 +195,6 @@ function onResize() {
 }
 
 function handleKeyDown(event: { key: any }) {
-  const rotationAmount = Math.PI / 2; // 90 degrees in radians
-
   switch (event.key) {
     case 'ArrowUp':
       rubiksCubeCalculation.roList(intersectedCubie, 'x', true);

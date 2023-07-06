@@ -55,41 +55,20 @@ export class RubiksCubeCalculation {
     return { horizontalSelection, verticalSelection };
   }
 
-  public rotate(cubie: THREE.Mesh, axis: string, clockwise: boolean) {
-    console.log(cubie);
-    let toBeRotated: THREE.Mesh[][];
-    let { horizontalSelection, verticalSelection } = this.findSelection(cubie);
-
-    if (axis === 'x') {
-      toBeRotated = horizontalSelection;
-    } else toBeRotated = verticalSelection;
-
-    let rotated = this.rotateCube(toBeRotated, clockwise);
-    console.log(rotated);
-
-    const dim = rotated.length;
-    for (let row = 0; row < dim; row++) {
-      for (let col = 0; col < dim; col++) {
-        toBeRotated[row][col].position.copy(rotated[row][col].position);
-      }
-    }
-  }
-
-  public rotateCube(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Mesh[][] {
+  public translatePosition(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Vector3[][] {
     const dim = cubies.length;
 
-    const rotatedMatrix: THREE.Mesh[][] = Array.from({ length: dim }, () => new Array(dim));
+    const rotatedMatrix: THREE.Vector3[][] = Array.from({ length: dim }, () => new Array(dim));
 
     for (let row = 0; row < dim; row++) {
       for (let col = 0; col < dim; col++) {
         if (clockwise) {
-          rotatedMatrix[col][dim - 1 - row] = cubies[row][col];
+          rotatedMatrix[col][dim - 1 - row] = cubies[row][col].position.clone();
         } else {
-          rotatedMatrix[dim - 1 - col][row] = cubies[row][col];
+          rotatedMatrix[dim - 1 - col][row] = cubies[row][col].position.clone();
         }
       }
     }
-
     return rotatedMatrix;
   }
 
@@ -98,15 +77,20 @@ export class RubiksCubeCalculation {
    * y axis for horizontal
    */
   public roList(cubie: THREE.Mesh, axis: string, clockwise: boolean) {
+    const rotationAmount = Math.PI / 2;
     let a: THREE.Mesh[] = [];
+
     this.list.forEach((child) => {
       if (axis === 'x' && child.position.x === cubie.position.x) {
+        if (clockwise) child.rotation.x -= rotationAmount;
+        else child.rotation.x += rotationAmount;
         a.push(child);
       } else if (axis === 'y' && child.position.y === cubie.position.y) {
+        if (clockwise) child.rotation.y -= rotationAmount;
+        else child.rotation.y += rotationAmount;
         a.push(child);
       }
     });
-    // a.forEach((child) => console.log(child));
 
     let rubixCube: THREE.Mesh[][] = [];
     let index = 0;
@@ -116,15 +100,12 @@ export class RubiksCubeCalculation {
         rubixCube[j][k] = a[index++];
       }
     }
-    let newrotaed = this.rotateCube(rubixCube, clockwise);
+    let newPos = this.translatePosition(rubixCube, clockwise);
 
     for (let j = 0; j < 3; j++) {
-      // rubixCube[j] = [];
       for (let k = 0; k < 3; k++) {
-        rubixCube[j][k].position.copy(newrotaed[j][k].position);
+        rubixCube[j][k].position.copy(newPos[j][k]);
       }
     }
-    console.log(rubixCube);
-    console.log(newrotaed);
   }
 }
