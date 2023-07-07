@@ -82,8 +82,8 @@ export class RubiksCubeCalculation {
 
     this.list.forEach((child) => {
       if (axis === 'x' && child.position.x === cubie.position.x) {
-        if (clockwise) child.rotation.x -= rotationAmount;
-        else child.rotation.x += rotationAmount;
+        if (clockwise) child.rotation.x += rotationAmount;
+        else child.rotation.x -= rotationAmount;
         a.push(child);
       } else if (axis === 'y' && child.position.y === cubie.position.y) {
         if (clockwise) child.rotation.y -= rotationAmount;
@@ -91,7 +91,25 @@ export class RubiksCubeCalculation {
         a.push(child);
       }
     });
+    const comparePositions = (a: THREE.Mesh, b: THREE.Mesh) => {
+      // Assuming the position property of the mesh contains the desired position data
+      const positionA = a.position;
+      const positionB = b.position;
 
+      // Compare positions in X, Y, and Z axes
+      if (positionA.x !== positionB.x) {
+        return positionA.x - positionB.x;
+      }
+      if (positionA.y !== positionB.y) {
+        return positionA.y - positionB.y;
+      }
+      if (positionA.z !== positionB.z) {
+        return positionA.z - positionB.z;
+      }
+
+      return 0; // Positions are equal
+    };
+    a.sort(comparePositions).reverse();
     let rubixCube: THREE.Mesh[][] = [];
     let index = 0;
     for (let j = 0; j < 3; j++) {
@@ -100,6 +118,8 @@ export class RubiksCubeCalculation {
         rubixCube[j][k] = a[index++];
       }
     }
+
+    console.log(rubixCube);
     let newPos = this.translatePosition(rubixCube, clockwise);
 
     for (let j = 0; j < 3; j++) {

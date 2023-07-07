@@ -7,6 +7,7 @@ let rubixCube: THREE.Mesh[][][] = [];
 let cubiesList: THREE.Mesh[] = [];
 let rubiksCubeCalculation: RubiksCubeCalculation;
 let altkeyPressed = false;
+let tooltip: HTMLDivElement | null = null;
 
 const rows = 3;
 const columns = 3;
@@ -54,12 +55,6 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.enableZoom = false;
 
-let hGp = new THREE.Group();
-hGp.name = 'Horizonatl-Group';
-let vGp = new THREE.Group();
-vGp.name = 'Vertical-Group';
-scene.add(hGp, vGp);
-
 // Create a loader for GLB files
 const loader = new GLTFLoader();
 
@@ -74,13 +69,9 @@ loader.load(
 
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        const position = child.position;
-        position.x = Math.round(position.x);
-        position.y = Math.round(position.y);
-        position.z = Math.round(position.z);
+        child.position.round();
         flatRubixCube.push(child);
         cubiesList.push(child);
-
         applywireframe(false);
       }
     });
@@ -142,14 +133,31 @@ function checkIntersection(event: PointerEvent) {
     const intersect = intersects[0];
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
       intersectedCubie = intersect.object;
+      // console.log(intersectedCubie.rotation);
       const intersectFace = intersect.face;
       addSelectionPlane(intersectedCubie, intersectFace);
+      showCubeName(intersectedCubie.name, intersectedCubie.position);
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
     scene.remove(plane);
-    moveChildrenToScene(hGp);
-    moveChildrenToScene(vGp);
+    if (tooltip) {
+      document.querySelector('.tooltip')?.remove();
+      tooltip = null;
+    }
+  }
+}
+
+function showCubeName(name: string, position: THREE.Vector3) {
+  if (tooltip) {
+    tooltip.innerHTML = `${name}<br>x: ${position.x}\n | y: ${position.y}\n | z: ${position.z}`;
+  } else {
+    tooltip = document.createElement('div');
+    tooltip.textContent = name;
+    tooltip.classList.add('tooltip');
+    tooltip.style.top = '0px';
+    tooltip.style.position = 'absolute';
+    document.body.appendChild(tooltip);
   }
 }
 
@@ -174,20 +182,6 @@ function addSelectionPlane(intersectObject: THREE.Object3D, intersectFace: THREE
   }
 }
 
-function moveChildrenToScene(group: THREE.Group) {
-  while (group.children.length > 0) {
-    const child = group.children[0];
-    const { position, rotation, scale } = group;
-    group.remove(child);
-    scene.add(child);
-
-    child.position.copy(position);
-    child.rotation.copy(rotation);
-    child.scale.copy(scale);
-    // group.dispose();
-  }
-}
-
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -197,10 +191,10 @@ function onResize() {
 function handleKeyDown(event: { key: any }) {
   switch (event.key) {
     case 'ArrowUp':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', true);
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', false);
       break;
     case 'ArrowDown':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', false);
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', true);
       break;
     case 'ArrowLeft':
       rubiksCubeCalculation.roList(intersectedCubie, 'y', true);
