@@ -133,7 +133,6 @@ function checkIntersection(event: PointerEvent) {
     const intersect = intersects[0];
     if (intersect.object instanceof THREE.Mesh && intersect.face != null) {
       intersectedCubie = intersect.object;
-      // console.log(intersectedCubie.rotation);
       const intersectFace = intersect.face;
       addSelectionPlane(intersectedCubie, intersectFace);
       showCubeName(intersectedCubie.name, intersectedCubie.position);
@@ -155,7 +154,7 @@ function showCubeName(name: string, position: THREE.Vector3) {
     tooltip = document.createElement('div');
     tooltip.textContent = name;
     tooltip.classList.add('tooltip');
-    tooltip.style.top = '0px';
+    tooltip.style.top = '10px';
     tooltip.style.position = 'absolute';
     document.body.appendChild(tooltip);
   }
@@ -191,16 +190,16 @@ function onResize() {
 function handleKeyDown(event: { key: any }) {
   switch (event.key) {
     case 'ArrowUp':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', false);
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', new THREE.Vector3(-1, 0, 0), false);
       break;
     case 'ArrowDown':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', true);
+      rubiksCubeCalculation.roList(intersectedCubie, 'x', new THREE.Vector3(1, 0, 0), true);
       break;
     case 'ArrowLeft':
-      rubiksCubeCalculation.roList(intersectedCubie, 'y', true);
+      rubiksCubeCalculation.roList(intersectedCubie, 'y', new THREE.Vector3(0, -1, 0), true);
       break;
     case 'ArrowRight':
-      rubiksCubeCalculation.roList(intersectedCubie, 'y', false);
+      rubiksCubeCalculation.roList(intersectedCubie, 'y', new THREE.Vector3(0, 1, 0), false);
       break;
     // case 'Alt':
     //   altkeyPressed = true;
