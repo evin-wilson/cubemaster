@@ -7,52 +7,10 @@ export interface Indices {
 }
 
 export class RubiksCubeCalculation {
-  private rubiksCube: THREE.Mesh[][][];
-  private list: THREE.Mesh[];
+  private rubiksCube: THREE.Mesh[];
 
-  constructor(rubiksCube: THREE.Mesh[][][], list: THREE.Mesh[]) {
+  constructor(rubiksCube: THREE.Mesh[]) {
     this.rubiksCube = rubiksCube;
-    this.list = list;
-  }
-
-  public findIndex(cubie: THREE.Mesh): Indices {
-    let intersectedIndices: Indices | null = null;
-    for (let height = 0; height < this.rubiksCube.length; height++) {
-      for (let row = 0; row < this.rubiksCube[height].length; row++) {
-        for (let column = 0; column < this.rubiksCube[height][row].length; column++) {
-          const object = this.rubiksCube[height][row][column];
-          if (object === cubie) {
-            intersectedIndices = { height, row, column };
-            break;
-          }
-        }
-        if (intersectedIndices) {
-          break;
-        }
-      }
-      if (intersectedIndices) {
-        break;
-      }
-    }
-    if (intersectedIndices) return intersectedIndices;
-    else return { height: -1, row: -1, column: -1 };
-  }
-
-  public findSelection(cubie: THREE.Mesh) {
-    let intersectedIndices = this.findIndex(cubie);
-    let horizontalSelection = this.rubiksCube[intersectedIndices.height];
-
-    let i: number = 0;
-    let verticalSelection: THREE.Mesh[][] = [];
-    this.rubiksCube.forEach((row) => {
-      verticalSelection[i] = [];
-      row.forEach((column) => {
-        verticalSelection[i].push(column[intersectedIndices.column]);
-      });
-      i++;
-    });
-
-    return { horizontalSelection, verticalSelection };
   }
 
   public translatePosition(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Vector3[][] {
@@ -72,7 +30,7 @@ export class RubiksCubeCalculation {
     return rotatedMatrix;
   }
 
-  public comparePositions(a: THREE.Mesh, b: THREE.Mesh) {
+  private comparePositions(a: THREE.Mesh, b: THREE.Mesh) {
     const positionA = a.position;
     const positionB = b.position;
 
@@ -94,34 +52,36 @@ export class RubiksCubeCalculation {
    * x axis for vertical
    * y axis for horizontal
    */
-  public roList(cubie: THREE.Mesh, axis: string, vec: THREE.Vector3, clockwise: boolean) {
-    let a: THREE.Mesh[] = [];
+  public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3, clockwise: boolean) {
+    let targetCubies: THREE.Mesh[] = [];
+    let cubiesToRotate: THREE.Mesh[][] = [];
 
-    this.list.forEach((child) => {
-      if (axis === 'x' && child.position.x === cubie.position.x) {
-        child.rotateOnWorldAxis(vec, THREE.MathUtils.degToRad(90));
-        a.push(child);
-      } else if (axis === 'y' && child.position.y === cubie.position.y) {
-        child.rotateOnWorldAxis(vec, THREE.MathUtils.degToRad(90));
-        a.push(child);
+    this.rubiksCube.forEach((cubie) => {
+      if (axis.x !== 0 && cubie.position.x === selectedCubie.position.x) {
+        targetCubies.push(cubie);
+      } else if (axis.y !== 0 && cubie.position.y === selectedCubie.position.y) {
+        targetCubies.push(cubie);
+      } else if (axis.z !== 0 && cubie.position.z === selectedCubie.position.z) {
+        targetCubies.push(cubie);
       }
     });
 
-    a.sort(this.comparePositions).reverse();
-    let rubixCube: THREE.Mesh[][] = [];
+    targetCubies.sort(this.comparePositions).reverse();
+
     let index = 0;
     for (let j = 0; j < 3; j++) {
-      rubixCube[j] = [];
+      cubiesToRotate[j] = [];
       for (let k = 0; k < 3; k++) {
-        rubixCube[j][k] = a[index++];
+        cubiesToRotate[j][k] = targetCubies[index++];
       }
     }
 
-    let newPos = this.translatePosition(rubixCube, clockwise);
+    let updatedPosition = this.translatePosition(cubiesToRotate, clockwise);
 
     for (let j = 0; j < 3; j++) {
       for (let k = 0; k < 3; k++) {
-        rubixCube[j][k].position.copy(newPos[j][k]);
+        cubiesToRotate[j][k].rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(90));
+        cubiesToRotate[j][k].position.copy(updatedPosition[j][k]);
       }
     }
   }

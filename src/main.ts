@@ -3,25 +3,10 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RubiksCubeCalculation } from './calculation';
 
-let rubixCube: THREE.Mesh[][][] = [];
-let cubiesList: THREE.Mesh[] = [];
+let rubixCube: THREE.Mesh[] = [];
 let rubiksCubeCalculation: RubiksCubeCalculation;
 let altkeyPressed = false;
 let tooltip: HTMLDivElement | null = null;
-
-const rows = 3;
-const columns = 3;
-const layers = 3;
-
-for (let i = 0; i < rows; i++) {
-  rubixCube[i] = [];
-  for (let j = 0; j < columns; j++) {
-    rubixCube[i][j] = [];
-    for (let k = 0; k < layers; k++) {
-      rubixCube[i][j][k] = new THREE.Mesh();
-    }
-  }
-}
 
 let mouse = new THREE.Vector2();
 let raycaster = new THREE.Raycaster();
@@ -65,27 +50,16 @@ loader.load(
     scene.add(model);
     console.log(model);
 
-    let flatRubixCube: THREE.Mesh[] = [];
-
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.position.round();
-        flatRubixCube.push(child);
-        cubiesList.push(child);
+        rubixCube.push(child);
         applywireframe(false);
       }
     });
 
-    let index = 0;
-    for (let row = 0; row < rows; row++) {
-      for (let column = 0; column < columns; column++) {
-        for (let layer = 0; layer < layers; layer++) {
-          rubixCube[row][column][layer] = flatRubixCube[index++];
-        }
-      }
-    }
-
-    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube, cubiesList);
+    // if intialized outside rubixCube array will be empty. to avoid it want to have a promise
+    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube);
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -98,7 +72,7 @@ loader.load(
 function applywireframe(apply: Boolean) {
   if (apply) {
     const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
-    cubiesList.forEach((cube) => {
+    rubixCube.forEach((cube) => {
       if (cube instanceof THREE.Mesh) {
         cube.material = wireframeMaterial;
       }
@@ -127,7 +101,7 @@ function checkIntersection(event: PointerEvent) {
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(rubixCube.flat(3), false);
+  const intersects = raycaster.intersectObjects(rubixCube, false);
 
   if (intersects.length > 0) {
     const intersect = intersects[0];
@@ -190,16 +164,16 @@ function onResize() {
 function handleKeyDown(event: { key: any }) {
   switch (event.key) {
     case 'ArrowUp':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', new THREE.Vector3(-1, 0, 0), false);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(-1, 0, 0), false);
       break;
     case 'ArrowDown':
-      rubiksCubeCalculation.roList(intersectedCubie, 'x', new THREE.Vector3(1, 0, 0), true);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(1, 0, 0), true);
       break;
     case 'ArrowLeft':
-      rubiksCubeCalculation.roList(intersectedCubie, 'y', new THREE.Vector3(0, -1, 0), true);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, -1, 0), true);
       break;
     case 'ArrowRight':
-      rubiksCubeCalculation.roList(intersectedCubie, 'y', new THREE.Vector3(0, 1, 0), false);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 1, 0), false);
       break;
     // case 'Alt':
     //   altkeyPressed = true;
