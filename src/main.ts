@@ -164,16 +164,16 @@ function onResize() {
 function handleKeyDown(event: { key: any }) {
   switch (event.key) {
     case 'ArrowUp':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(-1, 0, 0), false);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 0, 1));
       break;
     case 'ArrowDown':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(1, 0, 0), true);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 0, -1));
       break;
     case 'ArrowLeft':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, -1, 0), true);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, -1, 0));
       break;
     case 'ArrowRight':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 1, 0), false);
+      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 1, 0));
       break;
     // case 'Alt':
     //   altkeyPressed = true;
@@ -190,7 +190,7 @@ function animate() {
 // Start the animation loop
 animate();
 
-window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keydown', (e) => rubiksCubeCalculation.handleKeyDown(e));
 window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
 window.addEventListener('resize', onResize);
 window.addEventListener('pointermove', (e) => {
