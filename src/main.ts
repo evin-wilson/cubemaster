@@ -190,7 +190,10 @@ function animate() {
 // Start the animation loop
 animate();
 
-window.addEventListener('keydown', (e) => rubiksCubeCalculation.handleKeyDown(e));
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  rubiksCubeCalculation.handleKeyDown(e);
+});
 window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));
 window.addEventListener('resize', onResize);
 window.addEventListener('pointermove', (e) => {

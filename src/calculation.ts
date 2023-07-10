@@ -21,12 +21,18 @@ export class RubiksCubeCalculation {
      * D: yellow
      */
     this.movements = {
-      F: { cube: this.rubiksCube[10], axis: new THREE.Vector3(0, 0, 1) },
-      B: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, 1) },
-      R: { cube: this.rubiksCube[14], axis: new THREE.Vector3(1, 0, 0) },
-      L: { cube: this.rubiksCube[12], axis: new THREE.Vector3(1, 0, 0) },
-      U: { cube: this.rubiksCube[22], axis: new THREE.Vector3(0, -1, 0) },
-      D: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, -1, 0) },
+      F: { cube: this.rubiksCube[10], axis: new THREE.Vector3(0, 0, -1) },
+      f: { cube: this.rubiksCube[10], axis: new THREE.Vector3(0, 0, 1) },
+      B: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, -1) },
+      b: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, 1) },
+      R: { cube: this.rubiksCube[14], axis: new THREE.Vector3(-1, 0, 0) },
+      r: { cube: this.rubiksCube[14], axis: new THREE.Vector3(1, 0, 0) },
+      L: { cube: this.rubiksCube[12], axis: new THREE.Vector3(-1, 0, 0) },
+      l: { cube: this.rubiksCube[12], axis: new THREE.Vector3(1, 0, 0) },
+      U: { cube: this.rubiksCube[22], axis: new THREE.Vector3(0, 1, 0) },
+      u: { cube: this.rubiksCube[22], axis: new THREE.Vector3(0, -1, 0) },
+      D: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, 1, 0) },
+      d: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, -1, 0) },
     };
   }
 
@@ -110,7 +116,7 @@ export class RubiksCubeCalculation {
   }
 
   public handleKeyDown(event: { key: any }) {
-    const key = event.key.toUpperCase();
+    const key = event.key;
     if (this.movements[key]) {
       const { cube, axis } = this.movements[key];
       this.rotateCubiesAlongAxis(cube, axis);
