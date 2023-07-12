@@ -9,6 +9,7 @@ export interface Indices {
 export class RubiksCubeCalculation {
   private rubiksCube: THREE.Mesh[];
   private movements: { [key: string]: { cube: THREE.Mesh; axis: THREE.Vector3 } };
+  private shuffleCode = '';
 
   constructor(rubiksCube: THREE.Mesh[]) {
     this.rubiksCube = rubiksCube;
@@ -124,19 +125,42 @@ export class RubiksCubeCalculation {
   }
 
   public scramble() {
-    const characters = ['F', 'f', 'B', 'b', 'R', 'r', 'L', 'l', 'U', 'u', 'D', 'd'];
+    const characters = Object.keys(this.movements);
     let steps = '';
 
     for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       steps += characters[randomIndex];
     }
+    this.shuffleCode = steps;
 
     for (const step of steps) {
       if (this.movements[step]) {
         const { cube, axis } = this.movements[step];
         this.rotateCubiesAlongAxis(cube, axis);
       }
+    }
+  }
+
+  public solve() {
+    if (this.shuffleCode.length === 0) {
+      console.log('already solved cube');
+    } else {
+      const reversedShuffleCode = this.shuffleCode
+        .replace(/./g, (match) => {
+          return /[A-Z]/.test(match) ? match.toLowerCase() : match.toUpperCase();
+        })
+        .split('')
+        .reverse()
+        .join('');
+      for (const step of reversedShuffleCode) {
+        if (this.movements[step]) {
+          const { cube, axis } = this.movements[step];
+          this.rotateCubiesAlongAxis(cube, axis);
+        }
+      }
+
+      this.shuffleCode = '';
     }
   }
 }

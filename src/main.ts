@@ -178,6 +178,17 @@ shuffle_btn.addEventListener('click', () => {
 });
 document.body.appendChild(shuffle_btn);
 
+let solve_btn = document.createElement('button');
+solve_btn.textContent = 'solve';
+solve_btn.classList.add('solve_btn');
+solve_btn.style.top = '10px';
+solve_btn.style.left = '100px';
+solve_btn.style.position = 'absolute';
+solve_btn.addEventListener('click', () => {
+  rubiksCubeCalculation.solve();
+});
+document.body.appendChild(solve_btn);
+
 // Start the animation loop
 animate();
 
