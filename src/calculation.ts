@@ -122,4 +122,21 @@ export class RubiksCubeCalculation {
       this.rotateCubiesAlongAxis(cube, axis);
     }
   }
+
+  public scramble() {
+    const characters = ['F', 'f', 'B', 'b', 'R', 'r', 'L', 'l', 'U', 'u', 'D', 'd'];
+    let steps = '';
+
+    for (let i = 0; i < 10; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      steps += characters[randomIndex];
+    }
+
+    for (const step of steps) {
+      if (this.movements[step]) {
+        const { cube, axis } = this.movements[step];
+        this.rotateCubiesAlongAxis(cube, axis);
+      }
+    }
+  }
 }

@@ -128,7 +128,7 @@ function showCubeName(name: string, position: THREE.Vector3) {
     tooltip = document.createElement('div');
     tooltip.textContent = name;
     tooltip.classList.add('tooltip');
-    tooltip.style.top = '10px';
+    tooltip.style.top = '30px';
     tooltip.style.position = 'absolute';
     document.body.appendChild(tooltip);
   }
@@ -161,31 +161,22 @@ function onResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function handleKeyDown(event: { key: any }) {
-  switch (event.key) {
-    case 'ArrowUp':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 0, 1));
-      break;
-    case 'ArrowDown':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 0, -1));
-      break;
-    case 'ArrowLeft':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, -1, 0));
-      break;
-    case 'ArrowRight':
-      rubiksCubeCalculation.rotateCubiesAlongAxis(intersectedCubie, new THREE.Vector3(0, 1, 0));
-      break;
-    // case 'Alt':
-    //   altkeyPressed = true;
-  }
-}
-
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   controls.update();
 }
+
+let shuffle_btn = document.createElement('button');
+shuffle_btn.textContent = 'shuffle';
+shuffle_btn.classList.add('shuffle_btn');
+shuffle_btn.style.top = '10px';
+shuffle_btn.style.position = 'absolute';
+shuffle_btn.addEventListener('click', () => {
+  rubiksCubeCalculation.scramble();
+});
+document.body.appendChild(shuffle_btn);
 
 // Start the animation loop
 animate();
