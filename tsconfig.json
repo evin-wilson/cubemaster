@@ -18,6 +18,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
+
+    /* for ignoring types while importing modules*/
+    // "noImplicitAny": false
   },
   "include": ["src"]
 }
