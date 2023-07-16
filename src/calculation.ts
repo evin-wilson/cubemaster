@@ -24,16 +24,16 @@ export class RubiksCubeCalculation {
     this.movements = {
       F: { cube: this.rubiksCube[10], axis: new THREE.Vector3(0, 0, -1) },
       f: { cube: this.rubiksCube[10], axis: new THREE.Vector3(0, 0, 1) },
-      B: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, -1) },
-      b: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, 1) },
-      R: { cube: this.rubiksCube[14], axis: new THREE.Vector3(-1, 0, 0) },
-      r: { cube: this.rubiksCube[14], axis: new THREE.Vector3(1, 0, 0) },
+      B: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, 1) },
+      b: { cube: this.rubiksCube[16], axis: new THREE.Vector3(0, 0, -1) },
+      R: { cube: this.rubiksCube[14], axis: new THREE.Vector3(1, 0, 0) },
+      r: { cube: this.rubiksCube[14], axis: new THREE.Vector3(-1, 0, 0) },
       L: { cube: this.rubiksCube[12], axis: new THREE.Vector3(-1, 0, 0) },
       l: { cube: this.rubiksCube[12], axis: new THREE.Vector3(1, 0, 0) },
       U: { cube: this.rubiksCube[22], axis: new THREE.Vector3(0, 1, 0) },
       u: { cube: this.rubiksCube[22], axis: new THREE.Vector3(0, -1, 0) },
-      D: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, 1, 0) },
-      d: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, -1, 0) },
+      D: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, -1, 0) },
+      d: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, 1, 0) },
     };
   }
 
@@ -72,10 +72,6 @@ export class RubiksCubeCalculation {
     return 0; // Positions are equal
   }
 
-  /**
-   * x axis for vertical
-   * y axis for horizontal
-   */
   public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3) {
     let targetCubies: THREE.Mesh[] = [];
     let cubiesToRotate: THREE.Mesh[][] = [];
@@ -126,22 +122,17 @@ export class RubiksCubeCalculation {
 
   public scramble() {
     const characters = Object.keys(this.movements);
-    let steps = '';
+    let moves = '';
 
     for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
-      steps += characters[randomIndex];
+      moves += characters[randomIndex];
     }
-    this.shuffleCode = steps;
-
-    for (const step of steps) {
-      if (this.movements[step]) {
-        const { cube, axis } = this.movements[step];
-        this.rotateCubiesAlongAxis(cube, axis);
-      }
-    }
+    this.shuffleCode = moves;
+    this.move(moves);
   }
 
+  // if more than one shuffle btn is clicked this will fail
   public solve() {
     if (this.shuffleCode.length === 0) {
       console.log('already solved cube');
@@ -153,14 +144,17 @@ export class RubiksCubeCalculation {
         .split('')
         .reverse()
         .join('');
-      for (const step of reversedShuffleCode) {
-        if (this.movements[step]) {
-          const { cube, axis } = this.movements[step];
-          this.rotateCubiesAlongAxis(cube, axis);
-        }
-      }
-
+      this.move(reversedShuffleCode);
       this.shuffleCode = '';
+    }
+  }
+
+  public move(moves: string) {
+    for (const move of moves) {
+      if (this.movements[move]) {
+        const { cube, axis } = this.movements[move];
+        this.rotateCubiesAlongAxis(cube, axis);
+      }
     }
   }
 }
