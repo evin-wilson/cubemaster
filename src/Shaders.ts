@@ -1,6 +1,5 @@
 const vertexShader = () => {
   return `
-
     varying vec3 pos;
 
     void main() {
@@ -20,7 +19,6 @@ const vertexShader = () => {
 
 const fragmentShader = () => {
   return `
-
     varying vec3 pos;
 
     void main() {

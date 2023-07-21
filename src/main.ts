@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RubiksCubeCalculation } from './calculation';
+import { vertexShader, fragmentShader } from './Shaders.ts';
+import * as TWEEN from '@tweenjs/tween.js';
 
 let rubixCube: THREE.Mesh[] = [];
 let rubiksCubeCalculation: RubiksCubeCalculation;
@@ -55,6 +57,11 @@ loader.load(
         child.position.round();
         rubixCube.push(child);
         applywireframe(false);
+        // const shaderMaterial = new THREE.ShaderMaterial({
+        //   vertexShader: vertexShader(),
+        //   fragmentShader: fragmentShader(),
+        // });
+        // child.material = shaderMaterial;
       }
     });
 
@@ -164,6 +171,7 @@ function onResize() {
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
+  TWEEN.update();
   renderer.render(scene, camera);
   controls.update();
 }
