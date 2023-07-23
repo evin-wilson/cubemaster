@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as TWEEN from '@tweenjs/tween.js';
 
 export interface Indices {
   height: number;
@@ -8,11 +9,18 @@ export interface Indices {
 
 export class RubiksCubeCalculation {
   private rubiksCube: THREE.Mesh[];
-  private movements: { [key: string]: { cube: THREE.Mesh; axis: THREE.Vector3 } };
+  private movements: { [key: string]: { cube: THREE.Mesh; axis: THREE.Vector3 } } = {};
   private shuffleCode = '';
+  private scene: THREE.Scene;
+  private cubeGroup = new THREE.Group();
 
-  constructor(rubiksCube: THREE.Mesh[]) {
+  constructor(rubiksCube: THREE.Mesh[], scene: THREE.Scene) {
     this.rubiksCube = rubiksCube;
+    this.scene = scene;
+    this.init();
+  }
+
+  private init() {
     /**
      * F: green
      * B: blue
@@ -35,6 +43,9 @@ export class RubiksCubeCalculation {
       D: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, -1, 0) },
       d: { cube: this.rubiksCube[4], axis: new THREE.Vector3(0, 1, 0) },
     };
+
+    this.cubeGroup.name = 'cubeGroup';
+    this.scene.add(this.cubeGroup);
   }
 
   public translatePosition(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Vector3[][] {
@@ -104,12 +115,37 @@ export class RubiksCubeCalculation {
 
     let updatedPosition = this.translatePosition(cubiesToRotate, clockwise);
 
-    for (let j = 0; j < 3; j++) {
-      for (let k = 0; k < 3; k++) {
-        cubiesToRotate[j][k].rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(degree));
-        cubiesToRotate[j][k].position.copy(updatedPosition[j][k]);
-      }
-    }
+    targetCubies.forEach((cubie) => {
+      this.cubeGroup.add(cubie);
+    });
+
+    let prevAngle = 0;
+    new TWEEN.Tween({ angle: 0 })
+      .to({ angle: degree }, 1000)
+      .easing(TWEEN.Easing.Quartic.InOut)
+      .onUpdate(({ angle }) => {
+        this.cubeGroup.rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(angle - prevAngle));
+        prevAngle = angle;
+      })
+      .onComplete(() => {
+        let cubies: THREE.Object3D[] = [];
+        this.cubeGroup.traverse((child) => {
+          cubies.push(child);
+        });
+        targetCubies.forEach((cubie) => {
+          this.scene.add(cubie);
+        });
+        // this can be removed... need to work on it
+        for (let j = 0; j < 3; j++) {
+          for (let k = 0; k < 3; k++) {
+            cubiesToRotate[j][k].rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(degree));
+            cubiesToRotate[j][k].position.copy(updatedPosition[j][k]);
+          }
+        }
+        this.cubeGroup.rotation.set(0, 0, 0);
+        this.cubeGroup.quaternion.set(0, 0, 0, 1);
+      })
+      .start();
   }
 
   public handleKeyDown(event: { key: any }) {
@@ -128,7 +164,7 @@ export class RubiksCubeCalculation {
       const randomIndex = Math.floor(Math.random() * characters.length);
       moves += characters[randomIndex];
     }
-    this.shuffleCode = moves;
+    this.shuffleCode += moves;
     this.move(moves);
   }
 

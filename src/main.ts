@@ -66,7 +66,7 @@ loader.load(
     });
 
     // if intialized outside rubixCube array will be empty. to avoid it want to have a promise
-    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube);
+    rubiksCubeCalculation = new RubiksCubeCalculation(rubixCube, scene);
   },
   (xhr: ProgressEvent<EventTarget>) => {
     console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
