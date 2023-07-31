@@ -11,6 +11,7 @@ export class RubiksCubeCalculation {
   private rubiksCube: THREE.Mesh[];
   private movements: { [key: string]: { cube: THREE.Mesh; axis: THREE.Vector3 } } = {};
   private shuffleCode = '';
+  private isanimating = false;
   private scene: THREE.Scene;
   private cubeGroup = new THREE.Group();
 
@@ -84,6 +85,7 @@ export class RubiksCubeCalculation {
   }
 
   public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3) {
+    this.isanimating = true;
     let targetCubies: THREE.Mesh[] = [];
     let cubiesToRotate: THREE.Mesh[][] = [];
     let clockwise: boolean = true;
@@ -132,6 +134,7 @@ export class RubiksCubeCalculation {
         this.cubeGroup.traverse((child) => {
           cubies.push(child);
         });
+        // mesh can be only present in one group. so need to additionaly remove from the cubeGroup
         targetCubies.forEach((cubie) => {
           this.scene.add(cubie);
         });
@@ -144,11 +147,15 @@ export class RubiksCubeCalculation {
         }
         this.cubeGroup.rotation.set(0, 0, 0);
         this.cubeGroup.quaternion.set(0, 0, 0, 1);
+        this.isanimating = false;
       })
       .start();
   }
 
   public handleKeyDown(event: { key: any }) {
+    if (this.isanimating) {
+      return;
+    }
     const key = event.key;
     if (this.movements[key]) {
       const { cube, axis } = this.movements[key];
