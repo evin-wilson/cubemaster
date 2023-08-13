@@ -84,7 +84,7 @@ export class RubiksCubeCalculation {
     return 0; // Positions are equal
   }
 
-  public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3) {
+  public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3, resolve?) {
     this.isanimating = true;
     let targetCubies: THREE.Mesh[] = [];
     let cubiesToRotate: THREE.Mesh[][] = [];
@@ -148,6 +148,9 @@ export class RubiksCubeCalculation {
         this.cubeGroup.rotation.set(0, 0, 0);
         this.cubeGroup.quaternion.set(0, 0, 0, 1);
         this.isanimating = false;
+        if (typeof resolve === 'function') {
+          resolve();
+        }
       })
       .start();
   }
@@ -192,12 +195,21 @@ export class RubiksCubeCalculation {
     }
   }
 
-  public move(moves: string) {
-    for (const move of moves) {
-      if (this.movements[move]) {
-        const { cube, axis } = this.movements[move];
-        this.rotateCubiesAlongAxis(cube, axis);
+  public async move(moves: string) {
+    let currentIndex = 0;
+
+    const performNextMove = async () => {
+      if (currentIndex < moves.length) {
+        const move = moves[currentIndex];
+        if (this.movements[move]) {
+          const { cube, axis } = this.movements[move];
+          await new Promise((resolve) => this.rotateCubiesAlongAxis(cube, axis, resolve));
+        }
+        currentIndex++;
+        await performNextMove();
       }
-    }
+    };
+
+    await performNextMove();
   }
 }
