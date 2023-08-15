@@ -45,7 +45,7 @@ controls.enableZoom = false;
 const loader = new GLTFLoader();
 
 loader.load(
-  '/assets/rubix-cube.glb',
+  './assets/rubix-cube.glb',
   (gltf: GLTF) => {
     const model = gltf.scene;
     scene.add(model);
