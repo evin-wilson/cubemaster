@@ -84,7 +84,7 @@ export class RubiksCubeCalculation {
     return 0; // Positions are equal
   }
 
-  public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3, resolve?) {
+  public rotateCubiesAlongAxis(selectedCubie: THREE.Mesh, axis: THREE.Vector3, rotationSpeed: number, resolve?) {
     this.isanimating = true;
     let targetCubies: THREE.Mesh[] = [];
     let cubiesToRotate: THREE.Mesh[][] = [];
@@ -123,7 +123,7 @@ export class RubiksCubeCalculation {
 
     let prevAngle = 0;
     new TWEEN.Tween({ angle: 0 })
-      .to({ angle: degree }, 1000)
+      .to({ angle: degree }, rotationSpeed)
       .easing(TWEEN.Easing.Quartic.InOut)
       .onUpdate(({ angle }) => {
         this.cubeGroup.rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(angle - prevAngle));
@@ -162,7 +162,7 @@ export class RubiksCubeCalculation {
     const key = event.key;
     if (this.movements[key]) {
       const { cube, axis } = this.movements[key];
-      this.rotateCubiesAlongAxis(cube, axis);
+      this.rotateCubiesAlongAxis(cube, axis, 1000);
     }
   }
 
@@ -175,7 +175,7 @@ export class RubiksCubeCalculation {
       moves += characters[randomIndex];
     }
     this.shuffleCode += moves;
-    this.move(moves);
+    this.move(moves, 250);
   }
 
   // if more than one shuffle btn is clicked this will fail
@@ -190,12 +190,12 @@ export class RubiksCubeCalculation {
         .split('')
         .reverse()
         .join('');
-      this.move(reversedShuffleCode);
+      this.move(reversedShuffleCode, 800);
       this.shuffleCode = '';
     }
   }
 
-  public async move(moves: string) {
+  public async move(moves: string, rotationSpeed: number) {
     let currentIndex = 0;
 
     const performNextMove = async () => {
@@ -203,7 +203,7 @@ export class RubiksCubeCalculation {
         const move = moves[currentIndex];
         if (this.movements[move]) {
           const { cube, axis } = this.movements[move];
-          await new Promise((resolve) => this.rotateCubiesAlongAxis(cube, axis, resolve));
+          await new Promise((resolve) => this.rotateCubiesAlongAxis(cube, axis, rotationSpeed, resolve));
         }
         currentIndex++;
         await performNextMove();
