@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RubiksCubeCalculation } from './calculation';
-import { vertexShader, fragmentShader } from './Shaders.ts';
 import * as TWEEN from '@tweenjs/tween.js';
 
 let rubixCube: THREE.Mesh[] = [];
@@ -57,11 +56,6 @@ loader.load(
         child.position.round();
         rubixCube.push(child);
         applywireframe(false);
-        // const shaderMaterial = new THREE.ShaderMaterial({
-        //   vertexShader: vertexShader(),
-        //   fragmentShader: fragmentShader(),
-        // });
-        // child.material = shaderMaterial;
       }
     });
 
@@ -116,7 +110,6 @@ function checkIntersection(event: PointerEvent) {
       intersectedCubie = intersect.object;
       const intersectFace = intersect.face;
       addSelectionPlane(intersectedCubie, intersectFace);
-      showCubeName(intersectedCubie.name, intersectedCubie.position);
     }
   } else {
     if (boxhelper) scene.remove(boxhelper);
@@ -125,19 +118,6 @@ function checkIntersection(event: PointerEvent) {
       document.querySelector('.tooltip')?.remove();
       tooltip = null;
     }
-  }
-}
-
-function showCubeName(name: string, position: THREE.Vector3) {
-  if (tooltip) {
-    tooltip.innerHTML = `${name}<br>x: ${position.x}\n | y: ${position.y}\n | z: ${position.z}`;
-  } else {
-    tooltip = document.createElement('div');
-    tooltip.textContent = name;
-    tooltip.classList.add('tooltip');
-    tooltip.style.top = '30px';
-    tooltip.style.position = 'absolute';
-    document.body.appendChild(tooltip);
   }
 }
 
