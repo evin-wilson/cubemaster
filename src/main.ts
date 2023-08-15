@@ -84,9 +84,6 @@ function applywireframe(apply: Boolean) {
 //helpers
 let boxhelper: THREE.BoxHelper | null = null;
 
-const axisHelper = new THREE.AxesHelper(10);
-scene.add(axisHelper);
-
 const planeSize = 1.8;
 const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
 const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
