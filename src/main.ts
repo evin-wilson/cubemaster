@@ -176,32 +176,21 @@ function animate() {
   controls.update();
 }
 
-let shuffle_btn = document.createElement('button');
-shuffle_btn.textContent = 'shuffle';
-shuffle_btn.classList.add('shuffle_btn');
-shuffle_btn.style.top = '10px';
-shuffle_btn.style.position = 'absolute';
+const shuffle_btn = document.querySelector('#shuffle_btn') as HTMLButtonElement;
 shuffle_btn.addEventListener('click', () => {
   rubiksCubeCalculation.scramble();
 });
-document.body.appendChild(shuffle_btn);
 
-let solve_btn = document.createElement('button');
-solve_btn.textContent = 'solve';
-solve_btn.classList.add('solve_btn');
-solve_btn.style.top = '10px';
-solve_btn.style.left = '100px';
-solve_btn.style.position = 'absolute';
+const solve_btn = document.querySelector('#solve_btn') as HTMLButtonElement;
 solve_btn.addEventListener('click', () => {
   rubiksCubeCalculation.solve();
 });
-document.body.appendChild(solve_btn);
 
 // Start the animation loop
 animate();
 
 window.addEventListener('keydown', (e) => {
-  if (e.repeat) return;
+  // if (e.repeat) return;
   rubiksCubeCalculation.handleKeyDown(e);
 });
 window.addEventListener('keyup', (e) => (e.key === 'Alt' ? (altkeyPressed = false) : null));

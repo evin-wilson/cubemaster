@@ -3,13 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" type="text/css" href="./style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rubik's Cube</title>
   </head>
-  <body style="overflow: hidden">
+  <body>
     <script type="module" src="/src/main.ts"></script>
     <div id="app">
       <canvas id="playground"></canvas>
     </div>
+    <div class="button_group">
+      <button id="shuffle_btn">Shuffle</button>
+      <button id="solve_btn">Solve</button>
+    </div>
+    <code class="overlay">
+      <ul>
+        <li style="color: #009b48">F: Front clockwise</li>
+        <li style="color: #0046ad">B: Back clockwise</li>
+        <li style="color: #b71234">R: Right clockwise</li>
+        <li style="color: #ff5800">L: Left clockwise</li>
+        <li style="color: #000">U: Up clockwise</li>
+        <li style="color: #ffd500">D: Down clockwise</li>
+        <hr />
+        <li style="font-weight: lighter">
+          Hold down shift to <br />
+          rotate counterclcokwise
+        </li>
+      </ul>
+    </code>
   </body>
 </html>

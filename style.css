@@ -2,4 +2,26 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.overlay {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 10px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.button_group {
+  position: absolute;
+  top: 10px;
+  margin: 10px;
+  display: flex;
+  gap: 8px;
 }
