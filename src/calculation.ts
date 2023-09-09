@@ -49,17 +49,17 @@ export class RubiksCubeCalculation {
     this.scene.add(this.cubeGroup);
   }
 
-  public translatePosition(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Vector3[][] {
+  public translatePosition(cubies: THREE.Mesh[][], clockwise: boolean): THREE.Mesh[][] {
     const dim = cubies.length;
 
-    const rotatedMatrix: THREE.Vector3[][] = Array.from({ length: dim }, () => new Array(dim));
+    const rotatedMatrix: THREE.Mesh[][] = Array.from({ length: dim }, () => new Array(dim));
 
     for (let row = 0; row < dim; row++) {
       for (let col = 0; col < dim; col++) {
         if (clockwise) {
-          rotatedMatrix[col][dim - 1 - row] = cubies[row][col].position.clone();
+          rotatedMatrix[col][dim - 1 - row] = cubies[row][col].clone();
         } else {
-          rotatedMatrix[dim - 1 - col][row] = cubies[row][col].position.clone();
+          rotatedMatrix[dim - 1 - col][row] = cubies[row][col].clone();
         }
       }
     }
@@ -106,6 +106,7 @@ export class RubiksCubeCalculation {
     });
 
     targetCubies.sort(this.comparePositions).reverse();
+    console.log(targetCubies);
 
     let index = 0;
     for (let j = 0; j < 3; j++) {
@@ -142,7 +143,7 @@ export class RubiksCubeCalculation {
         for (let j = 0; j < 3; j++) {
           for (let k = 0; k < 3; k++) {
             cubiesToRotate[j][k].rotateOnWorldAxis(axis, THREE.MathUtils.degToRad(degree));
-            cubiesToRotate[j][k].position.copy(updatedPosition[j][k]);
+            cubiesToRotate[j][k].position.copy(updatedPosition[j][k].position.clone());
           }
         }
         this.cubeGroup.rotation.set(0, 0, 0);
